@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dining Hall Suggestion Form</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .btn-disabled { opacity: 0.5; cursor: not-allowed; pointer-events: none; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen py-10 px-4">
+
+    <div class="max-w-2xl mx-auto bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
+        <div class="bg-orange-500 p-8 text-white text-center">
+            <h2 class="text-3xl font-bold">Menu Suggestions</h2>
+            <p class="text-orange-100 mt-2">Help us improve the mess! Suggest your favorite meal combinations.</p>
+        </div>
+        <script id="ratufa_loader" src="https://www.ratufa.io/c/ld.js?i=yuktahar&f=zjmhmanc&n=n1.ratufa.io"></script>
+        <form id="yuktahar" method="POST">
+            <input type="hidden" name="meal_data_json" id="jsonOutput">
+        </form>
+
+        <form id="menuForm" class="p-8 space-y-8">
+            <div class="space-y-2">
+                <label class="block text-sm font-bold text-gray-700">Which Meal is this for?</label>
+                <select id="meal_time" required class="w-full p-4 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none transition">
+                    <option value="breakfast">Breakfast</option>
+                    <option value="lunch" selected>Lunch</option>
+                    <option value="dinner">Dinner</option>
+                </select>
+            </div>
+
+            <div id="combos-container" class="space-y-10">
+                <div class="combo-block p-6 rounded-2xl bg-orange-50/50 border border-orange-100 relative">
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="text-xs font-black text-orange-600 uppercase tracking-widest">Combo Option #1</span>
+                    </div>
+
+                    <div class="items-container space-y-4">
+                        <div class="item-row bg-white p-4 rounded-xl shadow-sm border border-gray-100 space-y-3">
+                            <div class="flex gap-3">
+                                <input type="text" placeholder="Item Name (e.g., Paneer Makhani)" 
+                                    class="item-name flex-1 text-lg font-medium border-b-2 border-gray-100 focus:border-orange-400 outline-none p-1 transition"
+                                    oninput="validateButtons()">
+                                <button type="button" onclick="addItem(this)" class="add-item-btn btn-disabled bg-orange-100 text-orange-600 w-10 h-10 rounded-full flex items-center justify-center hover:bg-orange-200 transition">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                            
+                            <div class="recipe-area pt-2">
+                                <label class="text-[10px] font-bold text-gray-400 uppercase">Want to share a recipe? (Highly Encouraged! 👩‍🍳)</label>
+                                <textarea placeholder="Add ingredients or cooking steps to help the chefs get it right..." 
+                                    class="item-recipe w-full mt-1 p-3 text-sm bg-gray-50 border border-gray-200 rounded-lg italic outline-none focus:ring-1 focus:ring-orange-300"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button type="button" id="addComboBtn" onclick="addCombo()" class="btn-disabled w-full py-4 border-2 border-dashed border-orange-200 text-orange-400 rounded-2xl font-bold hover:bg-orange-50 hover:text-orange-600 hover:border-orange-300 transition">
+                + Add Another Combo Option
+            </button>
+
+            <button type="submit" class="w-full bg-gray-900 text-white font-bold py-5 rounded-2xl hover:bg-black transition shadow-2xl flex justify-center items-center gap-3">
+                Send to Dining Hall <i class="fas fa-frog"></i>
+            </button>
+        </form>
+    </div>
+
+    <script>
+        // --- Validation Logic ---
+        function validateButtons() {
+            const allItems = document.querySelectorAll('.item-row');
+            const lastItemInEachCombo = [];
+            
+            // 1. Validate "Add Item" buttons
+            document.querySelectorAll('.combo-block').forEach(combo => {
+                const rows = combo.querySelectorAll('.item-row');
+                const lastRow = rows[rows.length - 1];
+                const input = lastRow.querySelector('.item-name');
+                const btn = lastRow.querySelector('.add-item-btn');
+                
+                if (input.value.trim().length > 0) {
+                    btn.classList.remove('btn-disabled');
+                } else {
+                    btn.classList.add('btn-disabled');
+                }
+            });
+
+            // 2. Validate "Add Combo" button (Requires at least one item name to be filled in the last combo)
+            const addComboBtn = document.getElementById('addComboBtn');
+            const allInputs = document.querySelectorAll('.item-name');
+            const lastInput = allInputs[allInputs.length - 1];
+            
+            if (lastInput.value.trim().length > 0) {
+                addComboBtn.classList.remove('btn-disabled');
+            } else {
+                addComboBtn.classList.add('btn-disabled');
+            }
+        }
+
+        // --- Dynamic UI ---
+        function addItem(btn) {
+            const container = btn.closest('.items-container');
+            const html = `
+                <div class="item-row bg-white p-4 rounded-xl shadow-sm border border-gray-100 space-y-3 animate-in fade-in duration-200">
+                    <div class="flex gap-3">
+                        <input type="text" placeholder="Next Item..." 
+                            class="item-name flex-1 text-lg font-medium border-b-2 border-gray-100 focus:border-orange-400 outline-none p-1 transition"
+                            oninput="validateButtons()">
+                        <button type="button" onclick="this.closest('.item-row').remove(); validateButtons();" class="text-gray-300 hover:text-red-500 transition px-2">
+                            <i class="fas fa-times"></i>
+                        </button>
+                        <button type="button" onclick="addItem(this)" class="add-item-btn btn-disabled bg-orange-100 text-orange-600 w-10 h-10 rounded-full flex items-center justify-center hover:bg-orange-200 transition">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+                    <div class="recipe-area pt-2">
+                        <textarea placeholder="Add recipe or prep note..." 
+                            class="item-recipe w-full mt-1 p-3 text-sm bg-gray-50 border border-gray-200 rounded-lg italic outline-none focus:ring-1 focus:ring-orange-300"></textarea>
+                    </div>
+                </div>`;
+            
+            // Hide previous add button to keep UI clean
+            btn.classList.add('hidden');
+            container.insertAdjacentHTML('beforeend', html);
+            validateButtons();
+        }
+
+        function addCombo() {
+            const container = document.getElementById('combos-container');
+            const count = container.querySelectorAll('.combo-block').length + 1;
+            const html = `
+                <div class="combo-block p-6 rounded-2xl bg-orange-50/50 border border-orange-100 relative animate-in slide-in-from-bottom-4 duration-300">
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="text-xs font-black text-orange-600 uppercase tracking-widest">Combo Option #${count}</span>
+                        <button type="button" onclick="this.closest('.combo-block').remove(); validateButtons();" class="text-xs text-red-400 font-bold hover:text-red-600 uppercase">Remove Combo</button>
+                    </div>
+                    <div class="items-container space-y-4">
+                        <div class="item-row bg-white p-4 rounded-xl shadow-sm border border-gray-100 space-y-3">
+                            <div class="flex gap-3">
+                                <input type="text" placeholder="Item Name" 
+                                    class="item-name flex-1 text-lg font-medium border-b-2 border-gray-100 focus:border-orange-400 outline-none p-1 transition"
+                                    oninput="validateButtons()">
+                                <button type="button" onclick="addItem(this)" class="add-item-btn btn-disabled bg-orange-100 text-orange-600 w-10 h-10 rounded-full flex items-center justify-center hover:bg-orange-200 transition">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                            <div class="recipe-area pt-2">
+                                <textarea placeholder="Add recipe or prep note..." class="item-recipe w-full mt-1 p-3 text-sm bg-gray-50 border border-gray-200 rounded-lg italic outline-none focus:ring-1 focus:ring-orange-300"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+            container.insertAdjacentHTML('beforeend', html);
+            validateButtons();
+        }
+
+        // --- Data Compilation ---
+        document.getElementById('menuForm').addEventListener('submit', function(e) {
+            e.preventDefault(); // Prevent default form submission
+            
+            const combos = [];
+            document.querySelectorAll('.combo-block').forEach(cb => {
+                const items = [];
+                cb.querySelectorAll('.item-row').forEach(row => {
+                    const name = row.querySelector('.item-name').value;
+                    const recipe = row.querySelector('.item-recipe').value;
+                    if(name.trim()) items.push({ name, recipe });
+                });
+                if(items.length > 0) combos.push({ items });
+            });
+
+            const data = {
+                meal: document.getElementById('meal_time').value,
+                timestamp: new Date().toLocaleString(),
+                suggestions: combos
+            };
+            
+            document.getElementById('jsonOutput').value = JSON.stringify(data);
+            
+            // Dispatch a submit event so ratufa's script can intercept it
+            const ratufaForm = document.getElementById('yuktahar');
+            const submitEvent = new Event('submit', { bubbles: true, cancelable: true });
+            ratufaForm.dispatchEvent(submitEvent);
+        });
+    </script>
+</body>
+</html>
